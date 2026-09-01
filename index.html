@@ -348,6 +348,14 @@ tfoot td{padding:10px 12px;font-family:monospace;font-weight:700;font-size:13px;
 </main>
 <div id="toast"></div>
 <script>
+  window.CLOUD_CONFIG = {
+    api: 'https://financas-backend-eight.vercel.app',
+    campo: 'fechamentoFiscal',
+    localKey: 'aco101_fiscal_v1'
+  };
+</script>
+<script src="https://financas-backend-eight.vercel.app/cloud-sync.js"></script>
+<script>
 // ── DADOS ──────────────────────────────────────────────────────
 const D = {
   loja:    { ent:[], sai:[] },
