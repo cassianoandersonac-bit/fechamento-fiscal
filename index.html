@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor Tributário — Fechamento Fiscal Mensal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --bg:#f5f5f4; --surface:#fff; --surface2:#f0efed; --border:#e2e0db; --border2:#ccc9c2;
+  --text:#1a1917; --text2:#57534e; --text3:#a8a29e;
+  --accent:#b8722a; --accent2:#d4892e;
+  --green:#166534; --green-bg:rgba(22,101,52,.08);
+  --red:#b91c1c; --red-bg:rgba(185,28,28,.08);
+  --blue:#1d4ed8; --purple:#7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
+/* HEADER */
+header{padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:34px;height:34px;background:var(--accent);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#000}
+.logo-text{font-size:17px;font-weight:800;letter-spacing:.05em}
+.logo-sub{font-size:10px;color:var(--text2);font-family:monospace;letter-spacing:.08em;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:10px}
+.period-badge{font-family:monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border2);padding:5px 11px;border-radius:4px;color:var(--text2)}
+.period-badge span{color:var(--accent);font-weight:700}
+/* BUTTONS */
+.btn{padding:7px 14px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:'Syne',sans-serif;transition:all .15s;white-space:nowrap}
+.btn:hover{color:var(--text);border-color:var(--text2)}
+.btn.primary{background:var(--accent);color:#000;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent2)}
+.btn.danger:hover{color:var(--red);border-color:var(--red)}
+/* UPLOAD BAR */
+.upload-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.drop-zone{flex:1;min-width:200px;border:1.5px dashed var(--border2);border-radius:6px;padding:10px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;background:var(--surface2)}
+.drop-zone:hover{border-color:var(--accent);background:rgba(184,114,42,.05)}
+.drop-text{font-size:11px;color:var(--text2);font-family:monospace}
+.drop-text strong{color:var(--text)}
+.xml-tags{display:flex;gap:6px;flex-wrap:wrap}
+.xtag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-family:monospace;font-weight:600;white-space:nowrap}
+.xtag.ok{background:rgba(22,101,52,.1);color:var(--green);border:1px solid rgba(22,101,52,.25)}
+.xtag.err{background:rgba(185,28,28,.1);color:var(--red);border:1px solid rgba(185,28,28,.25)}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 32px;background:var(--surface)}
+.tab{padding:12px 20px;font-size:11px;font-weight:700;letter-spacing:.05em;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:all .15s;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.dot{width:6px;height:6px;border-radius:50%}
+/* MAIN */
+main{padding:24px 32px;max-width:1300px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+/* SECTION TITLE */
+.sec{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+/* STAT CARDS */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 18px}
+.stat-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:5px}
+.stat-val{font-family:monospace;font-size:19px;font-weight:500}
+.stat-sub{font-family:monospace;font-size:10px;color:var(--text3);margin-top:3px}
+.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.accent{color:var(--accent)}.purple{color:var(--purple)}
+/* TABLES */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px}
+.card-head{padding:10px 16px;background:var(--surface2);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{text-align:left;padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);font-family:monospace;white-space:nowrap}
+th.r,td.r{text-align:right}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-family:monospace;color:var(--text2)}
+tbody td.cfop{color:var(--text);font-weight:500}
+tbody td.cred{text-align:right;color:var(--green);font-weight:500}
+tbody td.deb{text-align:right;color:var(--red);font-weight:500}
+tfoot td{padding:10px 12px;font-family:monospace;font-weight:700;font-size:13px;background:var(--surface2);border-top:2px solid var(--border)}
+.badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;font-family:monospace}
+.b20{background:rgba(184,114,42,.15);color:var(--accent)}
+.b12{background:rgba(29,78,216,.15);color:var(--blue)}
+.b7{background:rgba(22,101,52,.15);color:var(--green)}
+.b4{background:rgba(146,64,14,.15);color:#92400e}
+.b0{background:var(--surface2);color:var(--text3)}
+/* APURAÇÃO */
+.apu{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px}
+.apu-head{padding:10px 16px;background:var(--surface2);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border)}
+.apu-row{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.apu-row:last-child{border-bottom:none}
+.apu-lbl{color:var(--text2)}
+.apu-val{font-family:monospace;font-size:14px;font-weight:500}
+.apu-row.bold .apu-lbl{font-weight:700;color:var(--text)}
+.apu-row.bold .apu-val{font-weight:700;font-size:15px}
+.apu-row.result-green{background:var(--green-bg)}
+.apu-row.result-green .apu-lbl,.apu-row.result-green .apu-val{color:var(--green);font-weight:700}
+.apu-row.result-red{background:var(--red-bg)}
+.apu-row.result-red .apu-lbl,.apu-row.result-red .apu-val{color:var(--red);font-weight:700}
+.input-field{border:1px solid var(--border2);border-radius:4px;padding:4px 8px;font-family:monospace;font-size:13px;width:130px;text-align:right;background:var(--surface2)}
+/* PROEDI */
+.proedi-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px}
+/* CONSOLIDADO TABLE */
+.consol-table{width:100%;border-collapse:collapse;font-size:12px}
+.consol-table th{text-align:left;padding:9px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);font-family:monospace}
+.consol-table th.r{text-align:right}
+.consol-table td{padding:12px 12px;border-bottom:1px solid var(--border);font-family:monospace;font-size:12px}
+.consol-table td.r{text-align:right}
+.consol-table tfoot td{font-weight:700;font-size:13px;background:var(--surface2);border-top:2px solid var(--border)}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.tag-loja{background:rgba(29,78,216,.1);color:var(--blue);border:1px solid rgba(29,78,216,.25)}
+.tag-fab{background:rgba(184,114,42,.1);color:var(--accent);border:1px solid rgba(184,114,42,.25)}
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.empty-sub{font-size:11px;font-family:monospace}
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1917;color:#fff;padding:10px 20px;border-radius:6px;font-family:monospace;font-size:12px;font-weight:600;border:1px solid var(--border2);z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:0;transition:opacity .2s;pointer-events:none}
+@media print{header,.upload-bar,.tabs{padding:8px 16px}.btn,.drop-zone,#btn-limpar{display:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">A</div>
+    <div>
+      <div class="logo-text">Monitor Tributário</div>
+      <div class="logo-sub">APURAÇÃO MENSAL DE TRIBUTOS</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="period-badge">Competência: <span id="lbl-comp">—</span></div>
+    <select id="sel-mes" onchange="onMesChange()" style="font-family:monospace;font-size:11px;padding:5px 8px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--text)">
+      <option value="">Selecionar mês...</option>
+      <optgroup label="2025">
+      <option value="01/2025">Janeiro 2025</option><option value="02/2025">Fevereiro 2025</option>
+      <option value="03/2025">Março 2025</option><option value="04/2025">Abril 2025</option>
+      <option value="05/2025">Maio 2025</option><option value="06/2025">Junho 2025</option>
+      <option value="07/2025">Julho 2025</option><option value="08/2025">Agosto 2025</option>
+      <option value="09/2025">Setembro 2025</option><option value="10/2025">Outubro 2025</option>
+      <option value="11/2025">Novembro 2025</option><option value="12/2025">Dezembro 2025</option>
+      </optgroup>
+      <optgroup label="2026">
+      <option value="01/2026">Janeiro 2026</option><option value="02/2026">Fevereiro 2026</option>
+      <option value="03/2026">Março 2026</option><option value="04/2026">Abril 2026</option>
+      <option value="05/2026">Maio 2026</option><option value="06/2026">Junho 2026</option>
+      <option value="07/2026">Julho 2026</option><option value="08/2026">Agosto 2026</option>
+      <option value="09/2026">Setembro 2026</option><option value="10/2026">Outubro 2026</option>
+      <option value="11/2026">Novembro 2026</option><option value="12/2026">Dezembro 2026</option>
+      </optgroup>
+    </select>
+    <button class="btn primary" onclick="salvar()">💾 Salvar</button>
+    <button class="btn" onclick="document.getElementById('json-in').click()">📂 Carregar</button>
+    <button class="btn" onclick="gerarPDF()">⬇ PDF</button>
+  </div>
+</header>
+
+<div class="upload-bar">
+  <div class="drop-zone" onclick="document.getElementById('sped-in').click()">
+    <span>📂</span>
+    <div class="drop-text"><strong>Importar SPED</strong> — selecione os .txt da Loja e Fábrica</div>
+  </div>
+  <div class="xml-tags" id="xml-tags"></div>
+  <button class="btn danger" id="btn-limpar" onclick="limpar()">✕ Limpar</button>
+</div>
+<input type="file" id="sped-in" accept=".txt" multiple style="display:none">
+<input type="file" id="json-in" accept=".json" style="display:none">
+
+<div class="tabs">
+  <div class="tab active" onclick="tab('loja')"><div class="dot" style="background:var(--blue)"></div>LOJA</div>
+  <div class="tab" onclick="tab('fabrica')"><div class="dot" style="background:var(--accent)"></div>FÁBRICA</div>
+  <div class="tab" onclick="tab('consolidado')"><div class="dot" style="background:var(--green)"></div>CONSOLIDADO</div>
+  <div class="tab" onclick="tab('piscofins')"><div class="dot" style="background:var(--purple)"></div>PIS/COFINS</div>
+</div>
+
+<main>
+
+<!-- LOJA -->
+<div class="panel active" id="panel-loja">
+  <div class="grid4" id="stats-loja"></div>
+  <div class="grid2">
+    <div>
+      <div class="sec">Entradas por CFOP</div>
+      <div class="card"><table><thead><tr><th>CFOP</th><th class="r">Vlr Contábil</th><th class="r">Base ICMS</th><th>Alíq</th><th class="r">ICMS Crédito</th></tr></thead><tbody id="tb-loja-ent"></tbody><tfoot><tr><td>TOTAL ENTRADAS</td><td class="r" id="loja-ent-vlr">—</td><td class="r" id="loja-ent-bc">—</td><td></td><td class="r green" id="loja-ent-icms">—</td></tr></tfoot></table></div>
+      <div class="sec">Saídas por CFOP</div>
+      <div class="card"><table><thead><tr><th>CFOP</th><th class="r">Vlr Contábil</th><th class="r">Base ICMS</th><th>Alíq</th><th class="r">ICMS Débito</th></tr></thead><tbody id="tb-loja-sai"></tbody><tfoot><tr><td>TOTAL SAÍDAS</td><td class="r" id="loja-sai-vlr">—</td><td class="r" id="loja-sai-bc">—</td><td></td><td class="r red" id="loja-sai-icms">—</td></tr></tfoot></table></div>
+    </div>
+    <div>
+      <div class="sec">Apuração ICMS — Loja</div>
+      <div class="apu">
+        <div class="apu-head">DÉBITO DO IMPOSTO</div>
+        <div class="apu-row"><span class="apu-lbl">001 · Por saídas com débito</span><input class="input-field" id="loja-001" oninput="renderApu('loja')" value="0,00"></div>
+        <div class="apu-row"><span class="apu-lbl">002 · Outros débitos</span><span class="apu-val" id="loja-002">R$ 0,00</span></div>
+        <div class="apu-row bold"><span class="apu-lbl">004 · Subtotal débitos</span><span class="apu-val red" id="loja-004">R$ 0,00</span></div>
+        <div class="apu-head">CRÉDITO DO IMPOSTO</div>
+        <div class="apu-row"><span class="apu-lbl">005 · Por entradas com crédito</span><input class="input-field" id="loja-005" oninput="renderApu('loja')" value="0,00"></div>
+        <div class="apu-row"><span class="apu-lbl">006 · ICMS Antecipado</span><input class="input-field" id="loja-006" oninput="renderApu('loja')" value="0,00"></div>
+        <div class="apu-row bold"><span class="apu-lbl">008 · Subtotal créditos</span><span class="apu-val green" id="loja-008">R$ 0,00</span></div>
+        <div class="apu-row"><span class="apu-lbl">009 · Saldo credor anterior</span><input class="input-field" id="loja-009" oninput="renderApu('loja')" value="0,00"></div>
+        <div class="apu-row bold"><span class="apu-lbl">010 · Total créditos</span><span class="apu-val green" id="loja-010">R$ 0,00</span></div>
+        <div class="apu-head">SALDO</div>
+        <div class="apu-row" id="loja-saldo-row"><span class="apu-lbl" id="loja-saldo-lbl">013 · ICMS a recolher</span><span class="apu-val" id="loja-saldo-val">R$ 0,00</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FÁBRICA -->
+<div class="panel" id="panel-fabrica">
+  <div class="grid4" id="stats-fab"></div>
+  <div class="grid2">
+    <div>
+      <div class="sec">Entradas por CFOP</div>
+      <div class="card"><table><thead><tr><th>CFOP</th><th class="r">Vlr Contábil</th><th class="r">Base ICMS</th><th>Alíq</th><th class="r">ICMS Crédito</th></tr></thead><tbody id="tb-fab-ent"></tbody><tfoot><tr><td>TOTAL ENTRADAS</td><td class="r" id="fab-ent-vlr">—</td><td class="r" id="fab-ent-bc">—</td><td></td><td class="r green" id="fab-ent-icms">—</td></tr></tfoot></table></div>
+      <div class="sec">Saídas por CFOP</div>
+      <div class="card"><table><thead><tr><th>CFOP</th><th class="r">Vlr Contábil</th><th class="r">Base ICMS</th><th>Alíq</th><th class="r">ICMS Débito</th></tr></thead><tbody id="tb-fab-sai"></tbody><tfoot><tr><td>TOTAL SAÍDAS</td><td class="r" id="fab-sai-vlr">—</td><td class="r" id="fab-sai-bc">—</td><td></td><td class="r red" id="fab-sai-icms">—</td></tr></tfoot></table></div>
+    </div>
+    <div>
+      <div class="sec">Apuração ICMS — Fábrica</div>
+      <div class="apu">
+        <div class="apu-head">DÉBITO DO IMPOSTO</div>
+        <div class="apu-row"><span class="apu-lbl">001 · Por saídas com débito</span><input class="input-field" id="fab-001" oninput="renderApu('fab')" value="0,00"></div>
+        <div class="apu-row bold"><span class="apu-lbl">004 · Subtotal débitos</span><span class="apu-val red" id="fab-004">R$ 0,00</span></div>
+        <div class="apu-head">CRÉDITO DO IMPOSTO</div>
+        <div class="apu-row"><span class="apu-lbl">005 · Por entradas com crédito</span><input class="input-field" id="fab-005" oninput="renderApu('fab')" value="0,00"></div>
+        <div class="apu-row"><span class="apu-lbl">006 · ICMS Antecipado</span><input class="input-field" id="fab-006" oninput="renderApu('fab')" value="0,00"></div>
+        <div class="apu-row bold"><span class="apu-lbl">008 · Subtotal créditos</span><span class="apu-val green" id="fab-008">R$ 0,00</span></div>
+        <div class="apu-row"><span class="apu-lbl">009 · Saldo credor anterior</span><input class="input-field" id="fab-009" oninput="renderApu('fab')" value="0,00"></div>
+        <div class="apu-row bold"><span class="apu-lbl">010 · Total créditos</span><span class="apu-val green" id="fab-010">R$ 0,00</span></div>
+        <div class="apu-head">SALDO</div>
+        <div class="apu-row" id="fab-saldo-row"><span class="apu-lbl" id="fab-saldo-lbl">013 · ICMS a recolher</span><span class="apu-val" id="fab-saldo-val">R$ 0,00</span></div>
+      </div>
+      <div class="sec">Apuração GIM — PROEDI</div>
+      <div class="proedi-block">
+        <div class="apu-head" style="display:flex;justify-content:space-between;align-items:center">CÁLCULO AUTOMÁTICO · PROEDI <span>% Crédito: <input class="input-field" id="fab-pct-proedi" oninput="renderApu('fab')" value="75" style="width:60px"></span></div>
+        <div class="apu-row"><span class="apu-lbl">Débito s/ saídas (ICMS bruto)</span><span class="apu-val red" id="fab-gim-deb">R$ 0,00</span></div>
+        <div class="apu-row"><span class="apu-lbl">(-) Crédito s/ entradas</span><span class="apu-val green" id="fab-gim-cred">R$ 0,00</span></div>
+        <div class="apu-row bold"><span class="apu-lbl">Saldo devedor bruto</span><span class="apu-val" id="fab-gim-saldo">R$ 0,00</span></div>
+        <div class="apu-row"><span class="apu-lbl">(-) Crédito presumido PROEDI</span><span class="apu-val" id="fab-gim-cred-proedi">R$ 0,00</span></div>
+        <div class="apu-row bold result-red"><span class="apu-lbl">🏦 ICMS a recolher (venc. dia 15)</span><span class="apu-val" id="fab-gim-liq">R$ 0,00</span></div>
+        <div class="apu-head">CONTRIBUIÇÕES COMPLEMENTARES (venc. final do mês)</div>
+        <div class="apu-row"><span class="apu-lbl">(+) FUNDET (0,5% do incentivo)</span><span class="apu-val" id="fab-gim-fundet">R$ 0,00</span></div>
+        <div class="apu-row"><span class="apu-lbl">(+) FDCI (2,5% do incentivo)</span><span class="apu-val" id="fab-gim-fdci">R$ 0,00</span></div>
+        <div class="apu-row bold result-red"><span class="apu-lbl">💰 TOTAL DESEMBOLSO — GIM</span><span class="apu-val" id="fab-gim-total">R$ 0,00</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONSOLIDADO -->
+<div class="panel" id="panel-consolidado">
+  <div class="grid4" id="stats-consol"></div>
+  <div class="sec">Resumo por Unidade</div>
+  <div class="card">
+    <table class="consol-table">
+      <thead><tr><th>Unidade</th><th>CNPJ</th><th class="r">NFs Ent</th><th class="r">NFs Sai</th><th class="r">Vlr Entradas</th><th class="r">Vlr Saídas</th><th class="r">ICMS Crédito</th><th class="r">ICMS Débito</th><th class="r">Saldo ICMS</th></tr></thead>
+      <tbody id="tb-consol"></tbody>
+      <tfoot id="tf-consol"></tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- PIS/COFINS -->
+<div class="panel" id="panel-piscofins">
+  <div class="grid4" id="stats-piscof"></div>
+  <!-- LOJA -->
+  <div class="sec" style="margin-bottom:16px">LOJA — 22.406.851/0001-71 · Lucro Real · PIS 1,65% / COFINS 7,6% · Não Cumulativo</div>
+  <div class="grid2" style="margin-bottom:28px">
+    <div>
+      <div class="sec">Créditos — Entradas com Direito a Crédito</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>CFOP</th><th class="r">Vlr Contábil</th><th class="r">Exclusões (ICMS)</th><th class="r">Base PIS/COF</th><th class="r">PIS 1,65%</th><th class="r">COFINS 7,6%</th></tr></thead>
+          <tbody id="tb-loja-cred"></tbody>
+          <tfoot><tr><td colspan="3">TOTAL CRÉDITOS</td><td class="r" id="loja-pc-base">—</td><td class="r green" id="loja-pc-pis">—</td><td class="r green" id="loja-pc-cof">—</td></tr></tfoot>
+        </table>
+      </div>
+      <div class="sec" style="margin-top:16px">Débitos — Saídas Tributadas</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Período</th><th class="r">Vlr Contábil</th><th class="r">Base PIS/COF</th><th class="r">PIS 1,65%</th><th class="r">COFINS 7,6%</th></tr></thead>
+          <tbody id="tb-loja-deb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="sec">Apuração PIS — Loja</div>
+      <div class="apu" id="apu-pis-loja-novo"></div>
+      <div class="sec" style="margin-top:20px">Apuração COFINS — Loja</div>
+      <div class="apu" id="apu-cof-loja-novo"></div>
+    </div>
+  </div>
+  <!-- FÁBRICA -->
+  <div class="sec" style="margin-bottom:16px">FÁBRICA — 22.406.851/0002-52 · Lucro Real · PIS 1,65% / COFINS 7,6% · Não Cumulativo</div>
+  <div class="grid2" style="margin-bottom:28px">
+    <div>
+      <div class="sec">Créditos — Entradas com Direito a Crédito</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>CFOP</th><th class="r">Vlr Contábil</th><th class="r">Exclusões (ICMS)</th><th class="r">Base PIS/COF</th><th class="r">PIS 1,65%</th><th class="r">COFINS 7,6%</th></tr></thead>
+          <tbody id="tb-fab-cred"></tbody>
+          <tfoot><tr><td colspan="3">TOTAL CRÉDITOS</td><td class="r" id="fab-pc-base">—</td><td class="r green" id="fab-pc-pis">—</td><td class="r green" id="fab-pc-cof">—</td></tr></tfoot>
+        </table>
+      </div>
+      <div class="sec" style="margin-top:16px">Débitos — Saídas Tributadas</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Período</th><th class="r">Vlr Contábil</th><th class="r">Base PIS/COF</th><th class="r">PIS 1,65%</th><th class="r">COFINS 7,6%</th></tr></thead>
+          <tbody id="tb-fab-deb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="sec">Apuração PIS — Fábrica</div>
+      <div class="apu" id="apu-pis-fab-novo"></div>
+      <div class="sec" style="margin-top:20px">Apuração COFINS — Fábrica</div>
+      <div class="apu" id="apu-cof-fab-novo"></div>
+    </div>
+  </div>
+  <!-- CONSOLIDADO -->
+  <div class="sec" style="margin-bottom:12px">Créditos adicionais — Consolidado Loja + Fábrica</div>
+  <div class="apu" style="margin-bottom:20px">
+    <div class="apu-head">CRÉDITOS EXTRAS (abatidos do consolidado)</div>
+    <div class="apu-row">
+      <span class="apu-lbl">Depreciação ativo imobilizado (fixo mensal)</span>
+      <input class="input-field" id="cred-imob" oninput="renderPisCofins()" value="2.991,79" style="width:140px">
+    </div>
+    <div class="apu-row">
+      <span class="apu-lbl">PIS energia elétrica <span style="font-size:10px;color:var(--text3)">(soma coluna PIS/COF das contas × 17,84%)</span></span>
+      <input class="input-field" id="cred-energia-pis" oninput="renderPisCofins()" value="0,00" placeholder="0,00" style="width:140px">
+    </div>
+    <div class="apu-row">
+      <span class="apu-lbl">COFINS energia elétrica <span style="font-size:10px;color:var(--text3)">(soma coluna PIS/COF das contas × 82,16%)</span></span>
+      <input class="input-field" id="cred-energia-cof" oninput="renderPisCofins()" value="0,00" placeholder="0,00" style="width:140px">
+    </div>
+    <div class="apu-row" style="background:var(--bg2);border-radius:6px;padding:6px 10px;margin-top:4px">
+      <span class="apu-lbl" style="font-size:10px;color:var(--text3)">💡 Some a coluna PIS/COFINS(R$) de todas as contas → multiplique por 17,84% para PIS e 82,16% para COFINS</span>
+    </div>
+    <div class="apu-row">
+      <span class="apu-lbl">PIS imobilizado + energia</span>
+      <span class="apu-val green" id="cred-extra-pis">R$ 0,00</span>
+    </div>
+    <div class="apu-row">
+      <span class="apu-lbl">COFINS imobilizado + energia</span>
+      <span class="apu-val green" id="cred-extra-cof">R$ 0,00</span>
+    </div>
+  </div>
+  <div class="sec" style="margin-bottom:16px">CONSOLIDADO — Loja + Fábrica</div>
+  <div class="card" id="card-piscof-consol"></div>
+</div>
+
+</main>
+<div id="toast"></div>
+<script>
+// ── DADOS ──────────────────────────────────────────────────────
+const D = {
+  loja:    { ent:[], sai:[] },
+  fabrica: { ent:[], sai:[] }
+};
+
+// ── HELPERS ────────────────────────────────────────────────────
+const R = n => isNaN(n)?'0,00':n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const BR = n => 'R$ '+R(n);
+const pBR = s => { try{return parseFloat((s||'0').replace(/\./g,'').replace(',','.'))||0}catch(e){return 0} };
+const sum = (arr,k) => arr.reduce((s,i)=>s+(i[k]||0),0);
+
+function badge(a){
+  if(!a||a==0)return '<span class="badge b0">—</span>';
+  const cls={20:'b20',12:'b12',7:'b7',4:'b4'}[Math.round(a)]||'b0';
+  return `<span class="badge ${cls}">${a}%</span>`;
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',3000);
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function tab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['loja','fabrica','consolidado','piscofins'];
+    t.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+// ── STORAGE POR MÊS ───────────────────────────────────────────
+const STORE_KEY = 'aco101_fiscal_v1';
+
+function salvarMesAtual(){
+  const mes = document.getElementById('sel-mes').value;
+  if(!mes) return;
+  try{
+    const store = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    store[mes] = {
+      dados: D,
+      inputs: {
+        'loja-001': document.getElementById('loja-001')?.value||'0,00',
+        'loja-005': document.getElementById('loja-005')?.value||'0,00',
+        'loja-006': document.getElementById('loja-006')?.value||'0,00',
+        'loja-009': document.getElementById('loja-009')?.value||'0,00',
+        'fab-001':  document.getElementById('fab-001')?.value||'0,00',
+        'fab-005':  document.getElementById('fab-005')?.value||'0,00',
+        'fab-006':  document.getElementById('fab-006')?.value||'0,00',
+        'fab-009':  document.getElementById('fab-009')?.value||'0,00',
+        'fab-pct-proedi': document.getElementById('fab-pct-proedi')?.value||'75',
+        'cred-imob': document.getElementById('cred-imob')?.value||'2.991,79',
+        'cred-energia-pis': document.getElementById('cred-energia-pis')?.value||'0,00',
+        'cred-energia-cof': document.getElementById('cred-energia-cof')?.value||'0,00',
+      }
+    };
+    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  } catch(e){ console.warn('Erro ao salvar:', e); }
+}
+
+function carregarMes(mes){
+  try{
+    const store = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    if(store[mes]){
+      const s = store[mes];
+      D.loja = s.dados.loja || {ent:[],sai:[],notasEnt:0,notasSai:0};
+      D.fabrica = s.dados.fabrica || {ent:[],sai:[],notasEnt:0,notasSai:0};
+      if(s.inputs){
+        Object.entries(s.inputs).forEach(([id,val])=>{
+          const el=document.getElementById(id); if(el) el.value=val;
+        });
+      }
+      document.getElementById('btn-limpar').style.display='inline-block';
+      document.getElementById('xml-tags').innerHTML='';
+      const tag=document.createElement('span');
+      tag.className='xtag ok';
+      tag.textContent='💾 '+mes+' — carregado da memória';
+      document.getElementById('xml-tags').appendChild(tag);
+      return true;
+    }
+  } catch(e){ console.warn('Erro ao carregar:', e); }
+  return false;
+}
+
+function mesesComDados(){
+  try{
+    const store = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    return Object.keys(store);
+  } catch(e){ return []; }
+}
+
+function atualizarIndicadoresMeses(){
+  const com = mesesComDados();
+  document.querySelectorAll('#sel-mes option').forEach(opt=>{
+    if(!opt.value) return;
+    opt.textContent = opt.textContent.replace(' ✓','');
+    if(com.includes(opt.value)) opt.textContent += ' ✓';
+  });
+}
+
+function onMesChange(){
+  const v = document.getElementById('sel-mes').value;
+  document.getElementById('lbl-comp').textContent = v||'—';
+  if(!v) return;
+  // Limpar estado visual
+  document.getElementById('xml-tags').innerHTML='';
+  D.loja={ent:[],sai:[],notasEnt:0,notasSai:0};
+  D.fabrica={ent:[],sai:[],notasEnt:0,notasSai:0};
+  arquivosImportados.loja=[]; arquivosImportados.fabrica=[];
+  ['loja-001','loja-005','loja-006','loja-009','fab-001','fab-005','fab-006','fab-009'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='0,00';
+  });
+  const el=document.getElementById('fab-pct-proedi'); if(el) el.value='75';
+  // Tentar carregar do localStorage
+  const encontrou = carregarMes(v);
+  // Se o mês já tinha dados salvos (ex: SPED importado numa sessão anterior),
+  // marca como "já carregado" pra travar reimportação duplicada do mesmo SPED
+  if(encontrou){
+    if(D.loja.ent.length>0 || D.loja.sai.length>0) arquivosImportados.loja.push('[dados restaurados da memória]');
+    if(D.fabrica.ent.length>0 || D.fabrica.sai.length>0) arquivosImportados.fabrica.push('[dados restaurados da memória]');
+  }
+  renderAll();
+  if(encontrou) toast('Competência '+v+' carregada da memória');
+}
+onMesChange();
+
+// ── RENDER TABELA CFOP ─────────────────────────────────────────
+function renderTabela(tbodyId, itens, tipo){
+  const tbody=document.getElementById(tbodyId);
+  if(!tbody)return{vlr:0,bc:0,icms:0};
+  // Agrupar por cfop+aliq
+  const map={};
+  itens.forEach(i=>{
+    const k=i.cfop+'|'+(i.aliq||0);
+    if(!map[k])map[k]={cfop:i.cfop,aliq:i.aliq||0,vlr:0,bc:0,icms:0};
+    map[k].vlr+=i.vlr||0; map[k].bc+=i.bc||0; map[k].icms+=i.icms||0;
+  });
+  const grps=Object.values(map).sort((a,b)=>a.cfop.localeCompare(b.cfop));
+  let tVlr=0,tBC=0,tICMS=0;
+  tbody.innerHTML=grps.map(g=>{
+    tVlr+=g.vlr; tBC+=g.bc; tICMS+=g.icms;
+    const cls=tipo==='ent'?'cred':'deb';
+    return`<tr><td class="cfop">${g.cfop}</td><td class="r">R$ ${R(g.vlr)}</td><td class="r">R$ ${R(g.bc)}</td><td>${badge(g.aliq)}</td><td class="${cls}">R$ ${R(g.icms)}</td></tr>`;
+  }).join('');
+  return{vlr:tVlr,bc:tBC,icms:tICMS};
+}
+
+// ── RENDER UNIDADE ─────────────────────────────────────────────
+function renderUnidade(un){
+  const pre=un==='loja'?'loja':'fab';
+  const d=D[un];
+  const ent=renderTabela('tb-'+pre+'-ent',d.ent,'ent');
+  const sai=renderTabela('tb-'+pre+'-sai',d.sai,'sai');
+  document.getElementById(pre+'-ent-vlr').textContent='R$ '+R(ent.vlr);
+  document.getElementById(pre+'-ent-bc').textContent='R$ '+R(ent.bc);
+  document.getElementById(pre+'-ent-icms').textContent='R$ '+R(ent.icms);
+  document.getElementById(pre+'-sai-vlr').textContent='R$ '+R(sai.vlr);
+  document.getElementById(pre+'-sai-bc').textContent='R$ '+R(sai.bc);
+  document.getElementById(pre+'-sai-icms').textContent='R$ '+R(sai.icms);
+  // Stats
+  document.getElementById('stats-'+pre).innerHTML=`
+    <div class="stat"><div class="stat-lbl">NFs Entrada</div><div class="stat-val">${d.notasEnt||d.ent.length}</div><div class="stat-sub">${d.notasEnt ? 'notas fiscais' : 'CFOPs'}</div></div>
+    <div class="stat"><div class="stat-lbl">NFs Saída</div><div class="stat-val">${d.notasSai||d.sai.length}</div><div class="stat-sub">${d.notasSai ? 'notas fiscais' : 'CFOPs'}</div></div>
+    <div class="stat"><div class="stat-lbl">ICMS Crédito</div><div class="stat-val green">R$ ${R(ent.icms)}</div><div class="stat-sub">total entradas</div></div>
+    <div class="stat"><div class="stat-lbl">ICMS Débito</div><div class="stat-val red">R$ ${R(sai.icms)}</div><div class="stat-sub">total saídas</div></div>`;
+  // Preencher campos de apuração automaticamente
+  const inp001=document.getElementById(pre+'-001');
+  const inp005=document.getElementById(pre+'-005');
+  if(inp001&&inp001.value==='0,00') inp001.value=R(sai.icms);
+  if(inp005&&inp005.value==='0,00') inp005.value=R(ent.icms);
+  renderApu(pre);
+}
+
+// ── APURAÇÃO ICMS ──────────────────────────────────────────────
+function renderApu(pre){
+  const deb=pBR(document.getElementById(pre+'-001').value);
+  const cred=pBR(document.getElementById(pre+'-005').value);
+  const antec=pBR(document.getElementById(pre+'-006').value);
+  const saldoAnt=pBR(document.getElementById(pre+'-009').value);
+  const totalDeb=deb;
+  const totalCred=cred+antec+saldoAnt;
+  const saldo=totalDeb-totalCred;
+  document.getElementById(pre+'-004').textContent=BR(totalDeb);
+  document.getElementById(pre+'-008').textContent=BR(cred+antec);
+  document.getElementById(pre+'-010').textContent=BR(totalCred);
+  const row=document.getElementById(pre+'-saldo-row');
+  const lbl=document.getElementById(pre+'-saldo-lbl');
+  const val=document.getElementById(pre+'-saldo-val');
+  if(saldo>0){
+    row.className='apu-row result-red';
+    lbl.textContent='013 · ICMS a recolher';
+    val.textContent=BR(saldo);
+  } else {
+    row.className='apu-row result-green';
+    lbl.textContent='Saldo credor';
+    val.textContent=BR(Math.abs(saldo));
+  }
+  // PROEDI só para fábrica
+  if(pre==='fab'){
+    const pct=parseFloat(document.getElementById('fab-pct-proedi').value)||75;
+    const saldoBruto=Math.max(0,deb-cred);
+    const credProedi=saldoBruto*(pct/100);
+    const gimLiq=saldoBruto-credProedi;
+    const fundet=credProedi*0.005;
+    const fdci=credProedi*0.025;
+    document.getElementById('fab-gim-deb').textContent=BR(deb);
+    document.getElementById('fab-gim-cred').textContent=BR(cred);
+    document.getElementById('fab-gim-saldo').textContent=BR(saldoBruto);
+    document.getElementById('fab-gim-cred-proedi').textContent=BR(credProedi);
+    document.getElementById('fab-gim-liq').textContent=BR(gimLiq);
+    document.getElementById('fab-gim-fundet').textContent=BR(fundet);
+    document.getElementById('fab-gim-fdci').textContent=BR(fdci);
+    document.getElementById('fab-gim-total').textContent=BR(gimLiq+fundet+fdci);
+  }
+}
+
+// ── CONSOLIDADO ────────────────────────────────────────────────
+function renderConsolidado(){
+  const uns=[
+    {id:'loja',pre:'loja',lbl:'Loja',cnpj:'22.406.851/0001-71',cls:'tag-loja'},
+    {id:'fabrica',pre:'fab',lbl:'Fábrica',cnpj:'22.406.851/0002-52',cls:'tag-fab'}
+  ];
+  let tEntVlr=0,tSaiVlr=0,tCred=0,tDeb=0,tSaldo=0;
+  document.getElementById('tb-consol').innerHTML=uns.map(u=>{
+    const d=D[u.id];
+    const entVlr=sum(d.ent,'vlr'), saiVlr=sum(d.sai,'vlr');
+    const icmsCred=sum(d.ent,'icms'), icmsDeb=sum(d.sai,'icms');
+    const antec=pBR(document.getElementById(u.pre+'-006').value);
+    const saldoAnt=pBR(document.getElementById(u.pre+'-009').value);
+    const totalCred=icmsCred+antec+saldoAnt;
+    const saldo=totalCred-icmsDeb;
+    tEntVlr+=entVlr; tSaiVlr+=saiVlr; tCred+=icmsCred; tDeb+=icmsDeb; tSaldo+=saldo;
+    return`<tr>
+      <td><span class="tag ${u.cls}">${u.lbl}</span></td>
+      <td style="font-family:monospace;font-size:11px;color:var(--text3)">${u.cnpj}</td>
+      <td class="r">${d.notasEnt||d.ent.length}</td><td class="r">${d.notasSai||d.sai.length}</td>
+      <td class="r">R$ ${R(entVlr)}</td><td class="r">R$ ${R(saiVlr)}</td>
+      <td class="r green">R$ ${R(icmsCred)}</td><td class="r red">R$ ${R(icmsDeb)}</td>
+      <td class="r" style="font-weight:700;color:${saldo>=0?'var(--green)':'var(--red)'}">
+        ${saldo>=0?'CREDOR':'RECOLHER'}<br><small>R$ ${R(Math.abs(saldo))}</small></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tf-consol').innerHTML=`<tr>
+    <td colspan="2" style="color:var(--text)">TOTAL CONSOLIDADO</td>
+    <td colspan="2"></td>
+    <td class="r">R$ ${R(tEntVlr)}</td><td class="r">R$ ${R(tSaiVlr)}</td>
+    <td class="r green">R$ ${R(tCred)}</td><td class="r red">R$ ${R(tDeb)}</td>
+    <td class="r" style="font-weight:700;color:${tSaldo>=0?'var(--green)':'var(--red)'}">
+      ${tSaldo>=0?'CREDOR':'RECOLHER'}: R$ ${R(Math.abs(tSaldo))}</td>
+  </tr>`;
+  document.getElementById('stats-consol').innerHTML=`
+    <div class="stat"><div class="stat-lbl">Fat. Total</div><div class="stat-val accent">R$ ${R(tSaiVlr)}</div><div class="stat-sub">saídas período</div></div>
+    <div class="stat"><div class="stat-lbl">Compras Total</div><div class="stat-val blue">R$ ${R(tEntVlr)}</div><div class="stat-sub">entradas período</div></div>
+    <div class="stat"><div class="stat-lbl">ICMS Crédito</div><div class="stat-val green">R$ ${R(tCred)}</div><div class="stat-sub">ambas unidades</div></div>
+    <div class="stat"><div class="stat-lbl">ICMS Débito</div><div class="stat-val red">R$ ${R(tDeb)}</div><div class="stat-sub">ambas unidades</div></div>`;
+}
+
+// ── PIS/COFINS ─────────────────────────────────────────────────
+const CFOPS_CRED=['1101','1102','1111','1116','1120','1121','1122','1126','1401','1403','1556','1653','2101','2102','2111','2116','2120','2121','2122','2126','2401','2403','2556','2653'];
+
+function renderPisCofins(){
+  var ALQ_PIS=0.0165, ALQ_COF=0.076;
+
+  ['loja','fabrica'].forEach(function(un){
+    var pre = un==='loja' ? 'loja' : 'fab';
+    var d = D[un];
+    // Agrupar entradas por CFOP
+    var credMap = {};
+    d.ent.forEach(function(i){
+      var k = i.cfop;
+      if(!credMap[k]) credMap[k]={cfop:k,vlr:0,icms:0,pis:0,cof:0};
+      credMap[k].vlr  += i.vlr||0;
+      credMap[k].icms += i.icms||0;
+      credMap[k].pis  += i.pis||0;
+      credMap[k].cof  += i.cof||0;
+    });
+    var credGrps = Object.values(credMap).sort(function(a,b){return a.cfop.localeCompare(b.cfop);});
+
+    var tBase=0, tPisCred=0, tCofCred=0;
+    var tbody = document.getElementById('tb-'+pre+'-cred');
+    if(tbody){
+      tbody.innerHTML = credGrps.length ? credGrps.map(function(g){
+        // Base = valor - ICMS destacado (mesma fórmula usada no card Consolidado)
+        var base = (g.vlr||0) - (g.icms||0);
+        if(base < 0) base = g.vlr||0;
+        var pis  = base * ALQ_PIS;
+        var cof  = base * ALQ_COF;
+        tBase += base; tPisCred += pis; tCofCred += cof;
+        return '<tr><td class="cfop">'+g.cfop+'</td><td class="r">R$ '+R(g.vlr)+'</td><td class="r" style="color:var(--text3)">R$ '+R(g.icms)+'</td><td class="r">R$ '+R(base)+'</td><td class="cred">R$ '+R(pis)+'</td><td class="cred">R$ '+R(cof)+'</td></tr>';
+      }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:16px">Sem dados</td></tr>';
+    }
+    var elBase = document.getElementById(pre+'-pc-base');
+    var elPis  = document.getElementById(pre+'-pc-pis');
+    var elCof  = document.getElementById(pre+'-pc-cof');
+    if(elBase) elBase.textContent = 'R$ '+R(tBase);
+    if(elPis)  elPis.textContent  = 'R$ '+R(tPisCred);
+    if(elCof)  elCof.textContent  = 'R$ '+R(tCofCred);
+
+    // Débitos saídas — mesma regra usada no card Consolidado:
+    // 5116/5117 (entrega futura) → sem PIS/COFINS; 5922 → base = valor cheio; demais → valor - ICMS
+    var CFOP_SEM_PISCOF_TB = ['5116','5117'];
+    var tSaiVlr=0, tSaiBC=0, tSaiPis=0, tSaiCof=0;
+    d.sai.forEach(function(i){
+      tSaiVlr += i.vlr||0;
+      if(CFOP_SEM_PISCOF_TB.includes(i.cfop)) return;
+      var bc = (i.cfop==='5922') ? (i.vlr||0) : (i.vlr||0)-(i.icms||0);
+      if(bc < 0) bc = i.vlr||0;
+      tSaiBC  += bc;
+      tSaiPis += bc * ALQ_PIS;
+      tSaiCof += bc * ALQ_COF;
+    });
+    var tdeb = document.getElementById('tb-'+pre+'-deb');
+    if(tdeb){
+      var comp = document.getElementById('sel-mes').value || '—';
+      tdeb.innerHTML = '<tr><td style="font-family:monospace;color:var(--text2)">'+comp+'</td><td class="r">R$ '+R(tSaiVlr)+'</td><td class="r">R$ '+R(tSaiBC)+'</td><td class="deb">R$ '+R(tSaiPis)+'</td><td class="deb">R$ '+R(tSaiCof)+'</td></tr>';
+    }
+
+    // Apuração PIS
+    var ajPis  = pBR(document.getElementById(pre+'-aj-pis')  ? document.getElementById(pre+'-aj-pis').value  : '0');
+    var ajCof  = pBR(document.getElementById(pre+'-aj-cof')  ? document.getElementById(pre+'-aj-cof').value  : '0');
+    var pisSaldo = tSaiPis - tPisCred - ajPis;
+    var cofSaldo = tSaiCof - tCofCred - ajCof;
+
+    var apuPis = document.getElementById('apu-pis-'+pre+'-novo');
+    var apuCof = document.getElementById('apu-cof-'+pre+'-novo');
+
+    if(apuPis) apuPis.innerHTML =
+      '<div class="apu-row"><span class="apu-lbl">Contribuição apurada (saídas)</span><span class="apu-val red">R$ '+R(tSaiPis)+'</span></div>'+
+      '<div class="apu-row"><span class="apu-lbl">(-) Crédito s/ entradas</span><span class="apu-val green">R$ '+R(tPisCred)+'</span></div>'+
+      '<div class="apu-row"><span class="apu-lbl">(-) Ajuste / crédito adicional</span>'+
+        '<input class="input-field" id="'+pre+'-aj-pis" oninput="renderPisCofins()" value="'+R(ajPis)+'" placeholder="0,00" style="width:120px"></div>'+
+      '<div class="apu-row '+(pisSaldo>0?'result-red':'result-green')+'">'+
+        '<span class="apu-lbl">'+(pisSaldo>0?'PIS a recolher':'PIS — Saldo credor')+'</span>'+
+        '<span class="apu-val">R$ '+R(Math.abs(pisSaldo))+'</span></div>';
+
+    if(apuCof) apuCof.innerHTML =
+      '<div class="apu-row"><span class="apu-lbl">Contribuição apurada (saídas)</span><span class="apu-val red">R$ '+R(tSaiCof)+'</span></div>'+
+      '<div class="apu-row"><span class="apu-lbl">(-) Crédito s/ entradas</span><span class="apu-val green">R$ '+R(tCofCred)+'</span></div>'+
+      '<div class="apu-row"><span class="apu-lbl">(-) Ajuste / crédito adicional</span>'+
+        '<input class="input-field" id="'+pre+'-aj-cof" oninput="renderPisCofins()" value="'+R(ajCof)+'" placeholder="0,00" style="width:120px"></div>'+
+      '<div class="apu-row '+(cofSaldo>0?'result-red':'result-green')+'">'+
+        '<span class="apu-lbl">'+(cofSaldo>0?'COFINS a recolher':'COFINS — Saldo credor')+'</span>'+
+        '<span class="apu-val">R$ '+R(Math.abs(cofSaldo))+'</span></div>';
+  });
+
+  // Stats topo
+  var lPisCred=0,lCofCred=0,lPisDeb=0,lCofDeb=0;
+  var fPisCred=0,fCofCred=0,fPisDeb=0,fCofDeb=0;
+  // Crédito entradas: base = valor - ICMS (mesma fórmula usada na tabela por CFOP,
+  // para não haver duas contas diferentes do mesmo crédito no mesmo relatório)
+  D.loja.ent.forEach(function(i){var b=(i.vlr||0)-(i.icms||0); if(b<0)b=i.vlr||0; lPisCred+=b*ALQ_PIS; lCofCred+=b*ALQ_COF;});
+  D.fabrica.ent.forEach(function(i){var b=(i.vlr||0)-(i.icms||0); if(b<0)b=i.vlr||0; fPisCred+=b*ALQ_PIS; fCofCred+=b*ALQ_COF;});
+  // Débito saídas:
+  // 5116/5117 (entrega futura) → excluir (sem PIS/COF)
+  // 5922 (simples faturamento) → base = vlr contábil
+  // demais → base = bc
+  var CFOP_SEM_PISCOF = ['5116','5117'];
+  D.loja.sai.forEach(function(i){
+    if(CFOP_SEM_PISCOF.includes(i.cfop)) return;
+    // 5922: base = vlr contábil (sem ICMS pois ICMS=0)
+    // demais: base = vlr - icms (exclusão do ICMS da base PIS/COF)
+    var b = (i.cfop==='5922') ? (i.vlr||0) : (i.vlr||0)-(i.icms||0);
+    lPisDeb+=b*ALQ_PIS; lCofDeb+=b*ALQ_COF;
+  });
+  D.fabrica.sai.forEach(function(i){
+    if(CFOP_SEM_PISCOF.includes(i.cfop)) return;
+    var b = (i.cfop==='5922') ? (i.vlr||0) : (i.vlr||0)-(i.icms||0);
+    fPisDeb+=b*ALQ_PIS; fCofDeb+=b*ALQ_COF;
+  });
+
+  var lAjPis=pBR(document.getElementById('loja-aj-pis')?document.getElementById('loja-aj-pis').value:'0');
+  var lAjCof=pBR(document.getElementById('loja-aj-cof')?document.getElementById('loja-aj-cof').value:'0');
+  var fAjPis=pBR(document.getElementById('fab-aj-pis')?document.getElementById('fab-aj-pis').value:'0');
+  var fAjCof=pBR(document.getElementById('fab-aj-cof')?document.getElementById('fab-aj-cof').value:'0');
+
+  // Créditos extras consolidados (imobilizado + energia)
+  var credImob     = pBR(document.getElementById('cred-imob')         ? document.getElementById('cred-imob').value         : '2.991,79');
+  var credEnergiaPis = pBR(document.getElementById('cred-energia-pis') ? document.getElementById('cred-energia-pis').value : '0');
+  var credEnergiaCof = pBR(document.getElementById('cred-energia-cof') ? document.getElementById('cred-energia-cof').value : '0');
+  // Imobilizado gera PIS e COFINS pelo cálculo normal.
+  // REMOVIDO: ajuste automático de crédito a partir do ICMS de CFOPs 5116/5117.
+  // Esse "ajuste" não corresponde a nenhuma linha do demonstrativo oficial de
+  // crédito PIS/COFINS (SPED Contribuições) — era um crédito extra sem lastro
+  // que se somava por baixo dos panos e causava duplicidade quando o usuário
+  // lançava manualmente o "Ajuste de Acréscimo" real (campo aj-pis/aj-cof).
+  // Os valores de icmsAjuste seguem calculados/exibidos (informativo), mas
+  // não entram mais automaticamente no crédito de PIS/COFINS.
+  var icmsAjusteLoja = D.loja    ? (D.loja.icmsAjuste    || 0) : 0;
+  var icmsAjusteFab  = D.fabrica ? (D.fabrica.icmsAjuste  || 0) : 0;
+  var icmsAjusteTotal = icmsAjusteLoja + icmsAjusteFab;
+  var credExtraPis = credImob * 0.0165 + credEnergiaPis;
+  var credExtraCof = credImob * 0.076  + credEnergiaCof;
+  var elExPis = document.getElementById('cred-extra-pis');
+  var elExCof = document.getElementById('cred-extra-cof');
+  if(elExPis) elExPis.textContent = 'R$ ' + R(credExtraPis);
+  if(elExCof) elExCof.textContent = 'R$ ' + R(credExtraCof);
+
+  var lPisR=lPisDeb-lPisCred-lAjPis, lCofR=lCofDeb-lCofCred-lAjCof;
+  var fPisR=fPisDeb-fPisCred-fAjPis, fCofR=fCofDeb-fCofCred-fAjCof;
+  function rc(v){return v>0?'red':'green';}
+
+  var el = document.getElementById('stats-piscof');
+  if(el) el.innerHTML =
+    '<div class="stat"><div class="stat-lbl">PIS Loja</div><div class="stat-val '+rc(lPisR)+'">R$ '+R(Math.abs(lPisR))+'</div><div class="stat-sub">'+(lPisR>0?'a recolher':'saldo credor')+'</div></div>'+
+    '<div class="stat"><div class="stat-lbl">COFINS Loja</div><div class="stat-val '+rc(lCofR)+'">R$ '+R(Math.abs(lCofR))+'</div><div class="stat-sub">'+(lCofR>0?'a recolher':'saldo credor')+'</div></div>'+
+    '<div class="stat"><div class="stat-lbl">PIS Fábrica</div><div class="stat-val '+rc(fPisR)+'">R$ '+R(Math.abs(fPisR))+'</div><div class="stat-sub">'+(fPisR>0?'a recolher':'saldo credor')+'</div></div>'+
+    '<div class="stat"><div class="stat-lbl">COFINS Fábrica</div><div class="stat-val '+rc(fCofR)+'">R$ '+R(Math.abs(fCofR))+'</div><div class="stat-sub">'+(fCofR>0?'a recolher':'saldo credor')+'</div></div>';
+
+  // Consolidado
+  var consol = document.getElementById('card-piscof-consol');
+  if(consol){
+    var tPisDR=(lPisDeb+fPisDeb), tPisCR=(lPisCred+fPisCred), tPisAj=(lAjPis+fAjPis);
+    var tCofDR=(lCofDeb+fCofDeb), tCofCR=(lCofCred+fCofCred), tCofAj=(lAjCof+fAjCof);
+    // Incluir créditos extras consolidados (imobilizado + energia)
+    var tPisR=tPisDR-tPisCR-tPisAj-credExtraPis, tCofR=tCofDR-tCofCR-tCofAj-credExtraCof;
+    consol.innerHTML =
+      '<div class="apu-head" style="display:grid;grid-template-columns:1fr repeat(4,140px);gap:0;font-size:10px;padding:10px 16px">'+
+      '<span>Tributo</span><span style="text-align:right">Débito (saídas)</span><span style="text-align:right">Crédito (entradas)</span><span style="text-align:right">Ajuste</span><span style="text-align:right">Resultado</span></div>'+
+      fmtConsolRow('PIS — Loja',     lPisDeb, lPisCred, lAjPis, lPisR)+
+      fmtConsolRow('PIS — Fábrica',  fPisDeb, fPisCred, fAjPis, fPisR)+
+      fmtConsolRow('COFINS — Loja',  lCofDeb, lCofCred, lAjCof, lCofR)+
+      fmtConsolRow('COFINS — Fábrica',fCofDeb,fCofCred, fAjCof, fCofR)+
+      '<div class="apu-row bold result-'+(tPisR>0?'red':'green')+'" style="display:grid;grid-template-columns:1fr repeat(4,140px)">'+
+        '<span class="apu-lbl">PIS TOTAL CONSOLIDADO</span><span style="text-align:right;font-family:monospace">R$ '+R(tPisDR)+'</span>'+
+        '<span style="text-align:right;font-family:monospace;color:var(--green)">R$ '+R(tPisCR+credExtraPis)+'</span>'+
+        '<span style="text-align:right;font-family:monospace;color:var(--text3)">R$ '+R(tPisAj)+'</span>'+
+        '<span class="'+(tPisR>0?'deb':'cred')+'" style="text-align:right;font-family:monospace;font-weight:700">R$ '+R(Math.abs(tPisR))+'</span></div>'+
+      '<div class="apu-row bold result-'+(tCofR>0?'red':'green')+'" style="display:grid;grid-template-columns:1fr repeat(4,140px)">'+
+        '<span class="apu-lbl">COFINS TOTAL CONSOLIDADO</span><span style="text-align:right;font-family:monospace">R$ '+R(tCofDR)+'</span>'+
+        '<span style="text-align:right;font-family:monospace;color:var(--green)">R$ '+R(tCofCR+credExtraCof)+'</span>'+
+        '<span style="text-align:right;font-family:monospace;color:var(--text3)">R$ '+R(tCofAj)+'</span>'+
+        '<span class="'+(tCofR>0?'deb':'cred')+'" style="text-align:right;font-family:monospace;font-weight:700">R$ '+R(Math.abs(tCofR))+'</span></div>';
+  }
+}
+
+function fmtConsolRow(lbl, deb, cred, aj, result){
+  var cls = result>0?'red':'green';
+  return '<div class="apu-row" style="display:grid;grid-template-columns:1fr repeat(4,140px)">'+
+    '<span class="apu-lbl">'+lbl+'</span>'+
+    '<span style="text-align:right;font-family:monospace;color:var(--red)">R$ '+R(deb)+'</span>'+
+    '<span style="text-align:right;font-family:monospace;color:var(--green)">R$ '+R(cred)+'</span>'+
+    '<span style="text-align:right;font-family:monospace;color:var(--text3)">R$ '+R(aj)+'</span>'+
+    '<span style="text-align:right;font-family:monospace;font-weight:700;color:var(--'+cls+')">'+
+      (result>0?'▲ ':'▼ ')+'R$ '+R(Math.abs(result))+'</span></div>';
+}
+
+// ── RENDER ALL ─────────────────────────────────────────────────
+function renderAll(){
+  renderUnidade('loja');
+  renderUnidade('fabrica');
+  renderConsolidado();
+  renderPisCofins();
+  salvarMesAtual();
+}
+
+// ── SPED EMBUTIDO ──────────────────────────────────────────────
+function carregarSped(){
+
+
+  renderAll();
+  document.getElementById('btn-limpar').style.display='inline-block';
+  var comp=document.getElementById('sel-mes').value||'—';
+  var tag=document.createElement('span');
+  tag.className='xtag ok';
+  tag.textContent='SPED '+comp+' — Loja+Fábrica';
+  document.getElementById('xml-tags').appendChild(tag);
+  toast('SPED '+comp+' carregado');
+}
+
+// ── XML PARSER ────────────────────────────────────────────────
+// ── PARSER SPED ───────────────────────────────────────────────
+function parseSped(texto, filename){
+  const LOJA='22406851000171', FAB='22406851000252';
+  const linhas = texto.replace(/\r/g,'').split('\n');
+
+  // Identificar unidade pelo registro 0000
+  let un = null;
+  for(const l of linhas){
+    if(l.startsWith('|0000|')){
+      const p = l.split('|');
+      const cnpj = (p[7]||'').replace(/\D/g,'');
+      if(cnpj===LOJA) un='loja';
+      else if(cnpj===FAB) un='fabrica';
+      break;
+    }
+  }
+  if(!un) return {erro:'CNPJ não identificado no SPED', filename};
+
+  // Ler C100 + C190: agrupar por CFOP
+  function pBR(s){ return parseFloat((s||'0').replace(',','.')) || 0; }
+  let currentOp = null;
+  const ent = {}, sai = {};
+  let notasEnt = 0, notasSai = 0, icmsAjuste = 0;
+
+  for(const l of linhas){
+    const p = l.split('|');
+    if(p[1]==='C100'){
+      currentOp = p[2]==='0' ? 'ent' : 'sai';
+      if(currentOp==='ent') notasEnt++; else notasSai++;
+    } else if(p[1]==='C190' && currentOp){
+      const cfop = p[3];
+      const aliq = pBR(p[4]);
+      const vlr  = pBR(p[5]);
+      const bc   = pBR(p[6]);
+      const icms = pBR(p[7]);
+      const dest = currentOp==='ent' ? ent : sai;
+      const k = cfop+'|'+aliq;
+      if(!dest[k]) dest[k]={cfop,aliq,vlr:0,bc:0,icms:0,pis:0,cof:0};
+      dest[k].vlr+=vlr; dest[k].bc+=bc; dest[k].icms+=icms;
+      // CFOPs entrega futura: ICMS vira ajuste de crédito PIS/COFINS
+      if(currentOp==='sai' && ['5116','5117'].includes(cfop)){
+        icmsAjuste += icms;
+      }
+    }
+  }
+
+  const nEnt = Object.keys(ent).length;
+  const nSai = Object.keys(sai).length;
+  return {
+    ok:true, un, filename,
+    ent: Object.values(ent),
+    sai: Object.values(sai),
+    notasEnt, notasSai, icmsAjuste,
+    resumo: un.toUpperCase()+' — '+notasEnt+' NFs ent / '+notasSai+' NFs sai'
+  };
+}
+
+// Rastreia arquivos já importados por unidade na sessão atual, pra evitar
+// reimportação acidental do mesmo SPED (causa de duplicidade silenciosa de valores)
+const arquivosImportados = { loja: [], fabrica: [] };
+
+function processarSpeds(files){
+  Array.from(files).forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = e => {
+      // Tentar latin1 primeiro (encoding padrão do SPED)
+      const r = parseSped(e.target.result, file.name);
+      const tag = document.createElement('span');
+      if(r.erro){
+        tag.className='xtag err';
+        tag.textContent='✕ '+file.name.substring(0,20);
+        tag.title=r.erro;
+      } else {
+        // ── TRAVA 1: mesmo nome de arquivo já importado pra essa unidade ──
+        if(arquivosImportados[r.un].includes(file.name)){
+          const confirmar = confirm(
+            '⚠️ O arquivo "'+file.name+'" já foi importado para '+r.un.toUpperCase()+' nesta sessão.\n\n'+
+            'Importar de novo vai SOMAR os valores em cima do que já está carregado, duplicando os totais.\n\n'+
+            'Clique OK só se tiver certeza que quer somar mesmo assim. Caso contrário, clique Cancelar e use o botão "Limpar" antes de reimportar.'
+          );
+          if(!confirmar) return;
+        }
+        // ── TRAVA 2: já existem dados carregados pra essa unidade (mesmo que outro arquivo) ──
+        else if(D[r.un].ent.length > 0 || D[r.un].sai.length > 0){
+          const confirmar = confirm(
+            '⚠️ Já existem dados carregados para '+r.un.toUpperCase()+
+            ' ('+(D[r.un].notasEnt||0)+' NFs ent / '+(D[r.un].notasSai||0)+' NFs sai).\n\n'+
+            'Importar "'+file.name+'" agora vai SOMAR este arquivo aos dados existentes.\n\n'+
+            'Isso só é correto se este for um SEGUNDO arquivo complementar do mesmo mês (raro).\n'+
+            'Se for reimportação do mesmo período, clique Cancelar e use "Limpar" antes.\n\n'+
+            'Continuar somando?'
+          );
+          if(!confirmar) return;
+        }
+        arquivosImportados[r.un].push(file.name);
+        tag.className='xtag ok';
+        tag.textContent='📋 '+r.resumo;
+        r.ent.forEach(c=>D[r.un].ent.push(c));
+        r.sai.forEach(c=>D[r.un].sai.push(c));
+        D[r.un].notasEnt = (D[r.un].notasEnt||0) + r.notasEnt;
+        D[r.un].notasSai = (D[r.un].notasSai||0) + r.notasSai;
+        D[r.un].icmsAjuste = (D[r.un].icmsAjuste||0) + r.icmsAjuste;
+        renderAll();
+        salvarMesAtual();
+        atualizarIndicadoresMeses();
+        document.getElementById('btn-limpar').style.display='inline-block';
+      }
+      document.getElementById('xml-tags').appendChild(tag);
+    };
+    reader.readAsText(file,'ISO-8859-1');
+  });
+}
+
+// ── LIMPAR ────────────────────────────────────────────────────
+function limpar(){
+  D.loja={ent:[],sai:[],notasEnt:0,notasSai:0};D.fabrica={ent:[],sai:[],notasEnt:0,notasSai:0};
+  arquivosImportados.loja=[]; arquivosImportados.fabrica=[];
+  document.getElementById('xml-tags').innerHTML='';
+  ['loja-001','loja-005','loja-006','loja-009','fab-001','fab-005','fab-006','fab-009'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='0,00';});
+  renderAll();
+}
+
+// ── SALVAR JSON ───────────────────────────────────────────────
+function salvar(){
+  const ids=['loja-001','loja-005','loja-006','loja-009','fab-001','fab-005','fab-006','fab-009','fab-pct-proedi','cred-imob','cred-energia-pis','cred-energia-cof','loja-aj-pis','loja-aj-cof','fab-aj-pis','fab-aj-cof'];
+  const inputs={};
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)inputs[id]=el.value;});
+  const est={v:3,comp:document.getElementById('sel-mes').value,dados:D,inputs};
+  const blob=new Blob([JSON.stringify(est,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='fechamento_aco101_'+(est.comp.replace('/','_')||'sem_mes')+'.json';a.click();
+  toast('JSON salvo com sucesso!');
+}
+
+// ── GERAR PDF ─────────────────────────────────────────────────
+function gerarPDF(){
+  const mes = document.getElementById('sel-mes').value || 'sem_mes';
+  const nome = 'fechamento_aco101_'+mes.replace('/','_')+'.pdf';
+  const el = document.querySelector('main');
+  // Mostrar todos os painéis temporariamente para o PDF
+  const paineis = document.querySelectorAll('.panel');
+  const tabs = document.querySelectorAll('.tabs');
+  const uploadBar = document.querySelector('.upload-bar');
+  const header = document.querySelector('header');
+  paineis.forEach(p=>p.style.display='block');
+  tabs.forEach(t=>t.style.display='none');
+  uploadBar.style.display='none';
+  header.style.display='none';
+  // Título do PDF
+  const titulo = document.createElement('div');
+  titulo.style.cssText='font-family:monospace;font-size:14px;font-weight:700;padding:12px 0 20px;border-bottom:2px solid #ccc;margin-bottom:16px';
+  titulo.textContent='Monitor Tributário — Fechamento Fiscal · Competência: '+mes;
+  el.insertBefore(titulo, el.firstChild);
+  html2pdf().set({
+    margin: [10,10,10,10],
+    filename: nome,
+    image: {type:'jpeg', quality:0.95},
+    html2canvas: {scale:1.5, useCORS:true},
+    jsPDF: {unit:'mm', format:'a4', orientation:'landscape'}
+  }).from(el).save().then(()=>{
+    // Restaurar estado
+    el.removeChild(titulo);
+    paineis.forEach(p=>{ if(!p.classList.contains('active')) p.style.display=''; });
+    tabs.forEach(t=>t.style.display='');
+    uploadBar.style.display='';
+    header.style.display='';
+    toast('PDF gerado: '+nome);
+  });
+}
+
+// ── EVENTOS ───────────────────────────────────────────────────
+document.getElementById('sped-in').addEventListener('change',e=>{if(e.target.files.length)processarSpeds(e.target.files);});
+
+// ── CARREGAR JSON ──────────────────────────────────────────────
+document.getElementById('json-in').addEventListener('change',e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const est = JSON.parse(ev.target.result);
+      if(!est.dados) throw new Error('Arquivo inválido');
+      // Selecionar mês automaticamente
+      if(est.comp){
+        const sel = document.getElementById('sel-mes');
+        // Verificar se a opção existe
+        let found = false;
+        for(let i=0;i<sel.options.length;i++){
+          if(sel.options[i].value===est.comp){ sel.selectedIndex=i; found=true; break; }
+        }
+        if(!found){
+          // Adicionar opção dinamicamente se não existir
+          const opt = document.createElement('option');
+          opt.value = est.comp; opt.textContent = est.comp;
+          sel.appendChild(opt); sel.value = est.comp;
+        }
+        document.getElementById('lbl-comp').textContent = est.comp;
+      }
+      // Carregar dados
+      D.loja    = est.dados.loja    || {ent:[],sai:[],notasEnt:0,notasSai:0};
+      D.fabrica = est.dados.fabrica || {ent:[],sai:[],notasEnt:0,notasSai:0};
+      // Marca como "já carregado" pra travar reimportação duplicada de SPED por cima do JSON
+      arquivosImportados.loja=[]; arquivosImportados.fabrica=[];
+      if(D.loja.ent.length>0 || D.loja.sai.length>0) arquivosImportados.loja.push('[carregado via JSON: '+file.name+']');
+      if(D.fabrica.ent.length>0 || D.fabrica.sai.length>0) arquivosImportados.fabrica.push('[carregado via JSON: '+file.name+']');
+      // Restaurar inputs de apuração se existirem
+      if(est.inputs){
+        Object.entries(est.inputs).forEach(([id,val])=>{
+          const el=document.getElementById(id); if(el) el.value=val;
+        });
+      }
+      renderAll();
+      atualizarIndicadoresMeses();
+      document.getElementById('btn-limpar').style.display='inline-block';
+      document.getElementById('xml-tags').innerHTML='';
+      const tag=document.createElement('span');
+      tag.className='xtag ok';
+      tag.textContent='📂 '+file.name+' carregado';
+      document.getElementById('xml-tags').appendChild(tag);
+      toast('JSON carregado: '+(est.comp||file.name));
+    } catch(err){
+      alert('Erro ao carregar JSON: '+err.message);
+    }
+    e.target.value=''; // reset para permitir recarregar o mesmo arquivo
+  };
+  reader.readAsText(file,'UTF-8');
+});
+
+// ── INIT ──────────────────────────────────────────────────────
+renderAll();
+atualizarIndicadoresMeses();
+</script>
+</body>
+</html>
